@@ -124,7 +124,6 @@ CREATE TABLE instruments
   gps_location boolean NOT NULL,
   geolocation boolean NOT NULL,
   geolocation_data_processing character varying(255), -- If geolocation = TRUE then specify which algorithm was used to process GLS raw data
-  tdr boolean NOT NULL,
     CONSTRAINT instruments_pkey PRIMARY KEY (id),
     CONSTRAINT instruments_fkey_device FOREIGN KEY (device_id)
       REFERENCES device (id) MATCH SIMPLE
@@ -239,64 +238,65 @@ CREATE TABLE animal_measurement
 -- Data tables
 
 -- Location data, constraints on time and spatial coordinates hard coded into each table.
-CREATE TABLE animal_location_argos
-(
-  measurement_id bigint NOT NULL,
-  surgery_id bigint NOT NULL,
-  timestamp timestamp with time zone NOT NULL, -- time assigned to the location (UTC) in the following format "YYYY-MM-DD hh:mm:ss", e.g. "2009-08-05 21:19:52"
-  latitude double precision NOT NULL, -- CF term, preferred longitude estimate (WGS 84 datum), in degree_north
-  longitude double precision NOT NULL, -- CF term, preferred latitude estimate (WGS 84 datum), in degree_north
-  location_quality character varying (2) NOT NULL, -- Location Quality assigned by Argos (-1 = class A, -2 = class B, 9 = class Z)
-  alt_latitude double precision, -- Alternative solution to position equations, in degree_north
-  alt_longitude double precision, -- Alternative solution to position equations, in degree_north
-  n_mess double precision, -- Number of uplinks received during the satellite pass
-  n_mess_120 double precision, -- Number of uplinks received with signal strength > -120 dB
-  best_level double precision, -- Signal strength of strongest uplink (dB)
-  pass_dur double precision, -- Duration of satellite overpass (seconds)
-  freq double precision, -- Measured frequency of SRDL signal at the satellite (Hz)
-    CONSTRAINT animal_location_argos_pkey PRIMARY KEY (measurement_id),
-      CONSTRAINT animal_location_argos_fkey_surgery FOREIGN KEY (surgery_id)
-      REFERENCES surgery (id) MATCH SIMPLE
-      ON UPDATE NO ACTION ON DELETE NO ACTION,
-      CONSTRAINT animal_location_argos_latitude CHECK (latitude < 90 AND latitude > (-90)),
-      CONSTRAINT animal_location_argos_longitude CHECK (longitude < 180 AND longitude > (-180)),
-      CONSTRAINT animal_location_argos_time CHECK (timestamp < now())
-);
 
-CREATE TABLE animal_location_gps
+CREATE TABLE gps_locations
 (
   measurement_id bigint NOT NULL,
   surgery_id bigint NOT NULL, 
   timestamp timestamp with time zone NOT NULL, -- time assigned to the location (UTC) in the following format "YYYY-MM-DD hh:mm:ss"
-  latitude double precision NOT NULL, -- CF term, preferred longitude estimate (WGS 84 datum), in degree_north
-  longitude double precision NOT NULL, -- CF term, preferred latitude estimate (WGS 84 datum), in degree_north
+  latitude double precision NOT NULL, -- In decimal format and degree North.
+  longitude double precision NOT NULL, -- In decimal format and degree East.
   nsats_detected double precision,
   nsats_transmitted double precision,
   pseudoranges character varying (255),
   max_csn double precision,
   residual double precision,
   timeshift double precision,
-    CONSTRAINT animal_location_gps_pkey PRIMARY KEY (measurement_id),
-      CONSTRAINT animal_location_gps_fkey_surgery FOREIGN KEY (surgery_id)
+    CONSTRAINT gps_locations_pkey PRIMARY KEY (measurement_id),
+      CONSTRAINT gps_locations_fkey_surgery FOREIGN KEY (surgery_id)
       REFERENCES surgery (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION,
-      CONSTRAINT animal_location_gps_latitude CHECK (latitude < 90 AND latitude > (-90)),
-      CONSTRAINT animal_location_gps_longitude CHECK (longitude < 180 AND longitude > (-180)),
-      CONSTRAINT animal_location_gps_time CHECK (timestamp < now())
+      CONSTRAINT gps_locations_latitude CHECK (latitude < 90 AND latitude > (-90)),
+      CONSTRAINT gps_locations_longitude CHECK (longitude < 180 AND longitude > (-180)),
+      CONSTRAINT gps_locations_time CHECK (timestamp < now())
 );
 
-CREATE TABLE animal_location_geolocation
+CREATE TABLE argos_locations
+(
+  measurement_id bigint NOT NULL,
+  surgery_id bigint NOT NULL,
+  timestamp timestamp with time zone NOT NULL, -- time assigned to the location (UTC) in the following format "YYYY-MM-DD hh:mm:ss", e.g. "2009-08-05 21:19:52"
+  latitude double precision NOT NULL, -- Preferred longitude estimate (WGS 84 datum), in decimal format and degree North.
+  longitude double precision NOT NULL, -- Preferred latitude estimate (WGS 84 datum), in decimal format and degree East.
+  location_quality character varying (2) NOT NULL, -- Location Quality assigned by Argos (-1 = class A, -2 = class B, 9 = class Z)
+  alt_latitude double precision, -- Alternative solution to position equations, in decimal format and degree North.
+  alt_longitude double precision, -- Alternative solution to position equations, in decimal format and degree East.
+  n_mess double precision, -- Number of uplinks received during the satellite pass
+  n_mess_120 double precision, -- Number of uplinks received with signal strength > -120 dB
+  best_level double precision, -- Signal strength of strongest uplink (dB)
+  pass_dur double precision, -- Duration of satellite overpass (seconds)
+  freq double precision, -- Measured frequency of SRDL signal at the satellite (Hz)
+    CONSTRAINT argos_locations_pkey PRIMARY KEY (measurement_id),
+      CONSTRAINT argos_locations_fkey_surgery FOREIGN KEY (surgery_id)
+      REFERENCES surgery (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+      CONSTRAINT argos_locations_latitude CHECK (latitude < 90 AND latitude > (-90)),
+      CONSTRAINT argos_locations_longitude CHECK (longitude < 180 AND longitude > (-180)),
+      CONSTRAINT argos_locations_time CHECK (timestamp < now())
+);
+
+CREATE TABLE gls_locations
 (
   measurement_id bigint NOT NULL,
   surgery_id bigint NOT NULL, 
   timestamp timestamp with time zone NOT NULL, -- time assigned to the location (UTC) in the following format "YYYY-MM-DD hh:mm:ss"
   latitude double precision NOT NULL, -- CF term, preferred longitude estimate (WGS 84 datum), in degree_north
   longitude double precision NOT NULL, -- CF term, preferred latitude estimate (WGS 84 datum), in degree_north
-    CONSTRAINT animal_location_geolocation_pkey PRIMARY KEY (measurement_id),
-      CONSTRAINT animal_location_geolocation_fkey_surgery FOREIGN KEY (surgery_id)
+    CONSTRAINT gls_locations_pkey PRIMARY KEY (measurement_id),
+      CONSTRAINT gls_locations_fkey_surgery FOREIGN KEY (surgery_id)
       REFERENCES surgery (id) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION,
-      CONSTRAINT animal_location_geolocation_latitude CHECK (latitude < 90 AND latitude > (-90)),
-      CONSTRAINT animal_location_geolocation_longitude CHECK (longitude < 180 AND longitude > (-180)),
-      CONSTRAINT animal_location_geolocation_time CHECK (timestamp < now())
+      CONSTRAINT gls_locations_latitude CHECK (latitude < 90 AND latitude > (-90)),
+      CONSTRAINT gls_locations_longitude CHECK (longitude < 180 AND longitude > (-180)),
+      CONSTRAINT gls_locations_time CHECK (timestamp < now())
 );
