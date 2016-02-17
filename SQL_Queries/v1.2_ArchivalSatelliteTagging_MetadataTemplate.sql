@@ -162,7 +162,7 @@ CREATE TABLE animal
   unit character varying(20), -- e.g. days, months, years
   value real,
   estimate boolean,
-  comments character varying(255), --  e.g. animal origin (i.e. wild, hatchery), stock, damages
+  comments character varying(255), --  e.g. animal origin (i.e. wild, hatchery), stock, injuries
   CONSTRAINT animal_pkey PRIMARY KEY (id),
   CONSTRAINT animal_fkey_species FOREIGN KEY (species_id)
       REFERENCES species (id) MATCH SIMPLE
@@ -183,7 +183,7 @@ CREATE TABLE animal_release -- Previously named tag_deployment, links between su
   deployment_locality character varying(255) NOT NULL,
   deployment_location geometry NOT NULL,
   deployment_datetime timestamp with time zone NOT NULL, -- time assigned to tag deployment (UTC) in the following format "YYYY-MM-DD hh:mm:ss"
-  other_samples_taken character varying(255), -- Describe whether any samples were taken during tag deployment (e.g. DNA, blubber, blood)
+  deployment_comments character varying(255), -- Describe whether any samples were taken during tag deployment (e.g. DNA, blubber, blood)
   recoverer_id bigint, -- FK to users.id
   recovery_locality character varying(255),
   recovery_location geometry,
@@ -290,8 +290,8 @@ CREATE TABLE gls_locations
   measurement_id bigint NOT NULL,
   surgery_id bigint NOT NULL, 
   timestamp timestamp with time zone NOT NULL, -- time assigned to the location (UTC) in the following format "YYYY-MM-DD hh:mm:ss"
-  latitude double precision NOT NULL, -- CF term, preferred longitude estimate (WGS 84 datum), in degree_north
-  longitude double precision NOT NULL, -- CF term, preferred latitude estimate (WGS 84 datum), in degree_north
+  latitude double precision NOT NULL, -- In decimal format and degree North.
+  longitude double precision NOT NULL, -- In decimal format and degree East.
     CONSTRAINT gls_locations_pkey PRIMARY KEY (measurement_id),
       CONSTRAINT gls_locations_fkey_surgery FOREIGN KEY (surgery_id)
       REFERENCES surgery (id) MATCH SIMPLE
